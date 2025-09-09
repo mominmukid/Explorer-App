@@ -180,15 +180,15 @@ const deleteVideo = asyncHandler(async (req, res) => {
   if (video.owner.toString() !== userId.toString()) {
     throw new ApiError(400, "Not authorized to update this video");
   }
-  const result1 = await deleteFromCloudinary(video.thumbnailPublicId);
-  const result2 = await deleteFromCloudinaryVideo(video.videoPublicId);
-  if (result1.result !== "ok" || result2.result !== "ok") {
-    throw new ApiError(500, "Cloudinary delete failed or file not found");
-  }
-  const result = await Video.deleteOne({ _id: videoId, owner: Video.owner });
+   await deleteFromCloudinary(video.thumbnailPublicId);
+   await deleteFromCloudinaryVideo(video.videoPublicId);
+  const result = await Video.deleteOne({ _id: videoId});
   if (result.deletedCount <= 0) {
     throw new ApiError(500, "something went deleting video on database");
   }
+  return res
+    .status(200)
+    .json(new ApiResponce(200, {}, "Video deleted successfully"));
 });
 
 const updateThumbnel = asyncHandler(async (req, res) => {
@@ -289,11 +289,12 @@ const isPublishVideo = asyncHandler(async (req, res) => {
 });
 
 export {
-  getAllVideos,
+  deleteVideo,
+  updateVideo,
   publishVideo,
   getVideoById,
-  updateVideo,
+  getAllVideos,
   updateThumbnel,
+  isPublishVideo,
   updateVideoDetiles,
-  isPublishVideo
 };

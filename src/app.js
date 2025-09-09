@@ -18,16 +18,16 @@ app.use(cookiesparcer());
 
 //routes  import
 import userRouter from "./routes/user.routes.js";
-import tweetRouter from "./routes/tweet.routes.js"
-import videoRouter from "./routes/video.routes.js"
-import playListRouter  from   "./routes/playlist.routes.js"
+import tweetRouter from "./routes/tweet.routes.js";
+import videoRouter from "./routes/video.routes.js";
+import playListRouter from "./routes/playlist.routes.js";
+import likeRouter from "./routes/like.routes.js";
 
 //routes decleration
-app.use("/api/v1/users",userRouter);
-app.use("/api/v1/tweet",tweetRouter);
-app.use("/api/v1/videos",videoRouter);
-app.use("/api/v1/playlist",playListRouter);
-
-
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/tweet", tweetRouter);
+app.use("/api/v1/videos", videoRouter);
+app.use("/api/v1/playlist", playListRouter);
+app.use("/api/v1/like", likeRouter);
 
 export default app;

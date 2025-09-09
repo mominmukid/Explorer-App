@@ -157,10 +157,72 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
       )
     );
 });
+const updatePlayListDetails = asyncHandler(async (req, res) => {
+  const { name, description } = req.body;
+  const { playListId } = req.params;
+  if (!name.trim() || !description.trim()) {
+    throw new ApiError(400, "Name and description is required");
+  }
+  if (!playListId || !playListId.trim()) {
+    throw new ApiError(400, "Provide the playlist id");
+  }
+  if (!isValidObjectId(playListId)) {
+    throw new ApiError(400, "Invalid video id format");
+  }
+
+  const playlist = await Playlist.findById(playListId);
+  if (playlist.owner.toString() !== userId.toString()) {
+    throw new ApiError(403, "Not authorized to update this playlist");
+  }
+  if (!playlist) {
+    throw new ApiError(400, "PlayList is not found");
+  }
+  playlist.name = name;
+  playlist.description = description;
+  await Playlist.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponce(200, playlist, "PlayList updated successfully"));
+});
+
+const deletePlaylist = asyncHandler(async (req, res) => {
+  const { playlistId } = req.params;
+  const userId = req.user?._id;
+  if (!playlistId || !playlistId.trim()) {
+    throw new ApiError(400, "Provide the playlist id");
+  }
+  if (!isValidObjectId(playlistId)) {
+    throw new ApiError(400, "Invalid video id format");
+  }
+
+  const playlist = await Playlist.findById(playlistId);
+  if (playlist.owner.toString() !== userId.toString()) {
+    throw new ApiError(403, "Not authorized to update this playlist");
+  }
+  if (!playlist) {
+    throw new ApiError(400, "PlayList is not found");
+  }
+  const result = await Playlist.deleteOne({
+    _id: playlistId,
+    owner: userId,
+  });
+  if (result.deletedCount === 0) {
+    return res
+      .status(404)
+      .json({ message: "playlist not found or not authorized" });
+  }
+  return res
+    .status(200)
+    .json(new ApiResponce(200, "PlayList deleted successfully"));
+});
 
 export {
   createPlaylist,
+  deletePlaylist,
   getPlaylistById,
   getUserPlaylists,
   addVideoToPlaylist,
+  updatePlayListDetails,
+  removeVideoFromPlaylist,
 };
