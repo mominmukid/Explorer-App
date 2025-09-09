@@ -58,9 +58,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
-  //TODO: toggle like on comment
   const userId = req.user?._id;
-
   if (!commentId?.trim()) {
     throw new ApiError(400, "Comment id is required");
   }
@@ -97,7 +95,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
   }
 
   const newCommentDoc = await Like.findByIdAndUpdate(
-    likeDoc._id,
+    commentDoc._id,
     { $addToSet: { comment: commentId } }, // prevents duplicates
     { new: true }
   );
