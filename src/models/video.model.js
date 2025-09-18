@@ -1,28 +1,66 @@
 import mongoose from "mongoose";
-import mongooseAggregatePaginate  from "mongoose-aggregate-paginate-v2";
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 const videoSchema = new mongoose.Schema(
   {
-    title:{
-      type:String,
-      required:true
+    title: {
+      type: String,
+      required: true,
+    },
+    category: {
+      type: String,
+      required: true,
+      enum: [
+        "Education",
+        "Sports",
+        "Comedy",
+        "Lifestyle",
+        "Movies",
+        "Others",
+        "Music",
+        "News",
+        "Gaming",
+        "Entertainment",
+        "Science & Technology",
+        "Travel",
+        "Food",
+        "Health & Fitness",
+        "Fashion & Beauty",
+        "DIY & Crafts",
+        "Automotive",
+        "Animals & Pets",
+        "Business & Finance",
+        "History",
+        "Art & Culture",
+        "Politics",
+        "Environment",
+        "Religion & Spirituality",
+        "Parenting",
+        "Real Estate",
+        "Photography",
+        "Books & Literature",
+        "Theater",
+        "Animation",
+        "Documentary",
+        "Short Films",
+      ],
     },
     videoFile: {
       type: String, //coudynary url
       required: true,
     },
-    videoPublicId:{
-      type:String
+    videoPublicId: {
+      type: String,
     },
     thumbnail: {
       type: String, //coudynary url
       required: true,
     },
-   thumbnailPublicId:{
-      type:String
+    thumbnailPublicId: {
+      type: String,
     },
     description: {
-      type: String, 
+      type: String,
       required: true,
     },
     duration: {
@@ -34,7 +72,7 @@ const videoSchema = new mongoose.Schema(
       default: 0,
     },
     isPublished: {
-      type: Boolean, 
+      type: Boolean,
       default: true,
     },
     owner: {
@@ -46,6 +84,6 @@ const videoSchema = new mongoose.Schema(
 );
 
 //this code for the use aggregation pipline
-videoSchema.plugin(mongooseAggregatePaginate)
+videoSchema.plugin(mongooseAggregatePaginate);
 
 export const Video = mongoose.model("Video", videoSchema);

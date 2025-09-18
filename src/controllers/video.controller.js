@@ -46,9 +46,9 @@ const getAllVideos = asyncHandler(async (req, res) => {
 });
 
 const publishVideo = asyncHandler(async (req, res) => {
-  const { title, description } = req.body;
-  if (!title.trim() && !description.trim()) {
-    throw new ApiError(400, "Title and description must be required");
+  const { title, description, category } = req.body;
+  if ((!title.trim() && !description.trim()) || !category.trim()) {
+    throw new ApiError(400, "Title, description and category must be required");
   }
   const userId = req.user?._id;
   const videoLocalPath = req.files?.video?.[0]?.path;
@@ -71,6 +71,7 @@ const publishVideo = asyncHandler(async (req, res) => {
   //create new video document
   const userVideo = await Video.create({
     title,
+    category,
     description,
     owner: userId,
     videoFile: video?.url || "",
@@ -180,9 +181,9 @@ const deleteVideo = asyncHandler(async (req, res) => {
   if (video.owner.toString() !== userId.toString()) {
     throw new ApiError(400, "Not authorized to update this video");
   }
-   await deleteFromCloudinary(video.thumbnailPublicId);
-   await deleteFromCloudinaryVideo(video.videoPublicId);
-  const result = await Video.deleteOne({ _id: videoId});
+  await deleteFromCloudinary(video.thumbnailPublicId);
+  await deleteFromCloudinaryVideo(video.videoPublicId);
+  const result = await Video.deleteOne({ _id: videoId });
   if (result.deletedCount <= 0) {
     throw new ApiError(500, "something went deleting video on database");
   }
