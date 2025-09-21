@@ -103,12 +103,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
 //this method handles user login
 const loginUser = asyncHandler(async (req, res) => {
-  const { username, email, password } = req.body;
-  if (!username && !email) {
+  const { email, password } = req.body;
+  if (!email.trim() || !password.trim()) {
     throw new ApiError(400, "Email or  password is required ");
   }
   // check if user exists
-  const user = await User.findOne({ $or: [{ email }, { username }] });
+  const user = await User.findOne({ $or: [{ email }] });
   if (!user) {
     throw new ApiError(404, "User not found");
   }
@@ -398,6 +398,40 @@ const getUserChanelProfile = asyncHandler(async (req, res) => {
     );
 });
 
+const setWatchHistory = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  if (!videoId?.trim()) {
+    throw new ApiError(400, "videoId is required");
+  }
+  const user = await User.findById(req.user?._id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const videoIdObject = new mongoose.Types.ObjectId(videoId);
+  const isVideoAlreadyInWatchHistory = user.watchHistory.some((id) =>
+    id.equals(videoIdObject)
+  );
+  if (isVideoAlreadyInWatchHistory) {
+    user.watchHistory = user.watchHistory.filter(
+      (id) => !id.equals(videoIdObject)
+    );
+  }
+  user.watchHistory.unshift(videoIdObject);
+  if (user.watchHistory.length > 100) {
+    user.watchHistory.pop();
+  }
+  await user.save({ validateBeforeSave: false });
+  return res
+    .status(200)
+    .json(
+      new ApiResponce(
+        200,
+        user.watchHistory,
+        "Watch history updated successfully"
+      )
+    );
+});
+
 const getWatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
     {
@@ -503,6 +537,18 @@ const forExporingAggrigation = asyncHandler(async (req, res) => {
       new ApiResponce(200, user[0].owner, "User fatched succeessFully !!!")
     );
 });
+const deleteUserHistory = asyncHandler(async (req, res) => {
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { watchHistory: [] } },
+    { new: true }
+  ).select("-password -refreshTokan");
+  return res
+    .status(200)
+    .json(
+      new ApiResponce(200, user, "User watch history deleted successfully")
+    );
+});
 export {
   registerUser,
   loginUser,
@@ -516,4 +562,6 @@ export {
   getUserChanelProfile,
   getWatchHistory,
   forExporingAggrigation,
+  setWatchHistory,
+  deleteUserHistory
 };

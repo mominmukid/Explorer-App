@@ -43,7 +43,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
   });
 
   if (isLiked) {
-    return res.status(200).json(new ApiResponce(200, "User likced already"));
+    return res.status(200).json(new ApiResponce(200, " likced already"));
   }
 
   const newLike = await Like.findByIdAndUpdate(
@@ -164,19 +164,70 @@ const getLikedVideos = asyncHandler(async (req, res) => {
       },
     },
     {
-      $lookup:{
-         from: "videos",
+      $lookup: {
+        from: "videos",
         localField: "video",
         foreignField: "_id",
         as: "likedvideos",
-      }
-    }
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullname: 1,
+                    username: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
   ]);
   return res
     .status(200)
     .json(
-      new ApiResponce(200, userLikedVideos[0].likedvideos, "user Liked video feached successfully")
+      new ApiResponce(
+        200,
+        userLikedVideos[0].likedvideos,
+        "user Liked video feached successfully"
+      )
     );
 });
 
-export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos };
+const getVideoLikes = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  if (!videoId?.trim()) {
+    throw new ApiError(400, "Video id is required");
+  }
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video id format");
+  }
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+    video.likeCount = await Like.countDocuments({ video: { $in: [videoId] } });
+    await video.save();
+    let data=video.likeCount 
+  return res
+    .status(200)
+    .json(
+      new ApiResponce(200, {data  }, "likes count feached successfully")
+    );
+});
+export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos,getVideoLikes };

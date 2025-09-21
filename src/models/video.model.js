@@ -19,6 +19,7 @@ const videoSchema = new mongoose.Schema(
         "Others",
         "Music",
         "News",
+        "Vlogs",
         "Gaming",
         "Entertainment",
         "Science & Technology",
@@ -78,6 +79,10 @@ const videoSchema = new mongoose.Schema(
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+    likeCount: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

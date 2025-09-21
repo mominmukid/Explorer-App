@@ -12,6 +12,8 @@ import {
   updateAccountDetails,
   updateAvatar,
   updateCoverImage,
+  setWatchHistory,
+  deleteUserHistory,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -42,6 +44,8 @@ router
   .patch(upload.single("coverImage"), verifyJWT, updateCoverImage);
 router.route("/channel-details/:username").get(verifyJWT, getUserChanelProfile);
 router.route("/watch-history").get(verifyJWT, getWatchHistory);
+router.route("/set-watch-history/:videoId").post(verifyJWT, setWatchHistory);
+router.route("/delete-watch-history").delete(verifyJWT, deleteUserHistory);
 router
   .route("/for-Exporing-Aggrigation")
   .post(verifyJWT, forExporingAggrigation);
