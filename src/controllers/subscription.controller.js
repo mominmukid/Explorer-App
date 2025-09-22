@@ -15,8 +15,6 @@ const toggleSubscription = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid video id format");
   }
   const channal = await Subcription.find({ channel: channelId });
-  console.log(channal);
-
   if (channal.length <= 0) {
     const newChannel = await Subcription.create({
       channel: channelId,
@@ -85,4 +83,27 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
 
 });
 
-export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };
+const getChannelSubscribers = asyncHandler(async (req, res) => {
+  const { channelId } = req.params;
+  if (!channelId || !channelId.trim()) {
+    throw new ApiError(400, "please provide the Chanal Id or userId");
+  }
+  if (!isValidObjectId(channelId)) {
+    throw new ApiError(400, "Invalid video id format");
+  }
+  const subscribers = await Subcription
+    .findOne({ channel: channelId }); // populate subscriber details from User model
+
+  if (!subscribers) { 
+    return res
+      .status(200)
+      .json(new ApiResponce(200, [], "No subscribers found for this channel"));
+  }   
+  return res
+    .status(200)
+    .json(new ApiResponce(200, subscribers.subscriber, "Subscribers fetched successfully"));
+});
+
+
+
+export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels,getChannelSubscribers };

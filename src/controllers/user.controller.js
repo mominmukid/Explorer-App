@@ -243,28 +243,32 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponce(200, {}, "Password cahange successfully"));
 });
 
-const getCurrentUser = asyncHandler(async (req, res) => {
+const getUser = asyncHandler(async (req, res) => {
+  const {id} = req.params;
+  const user = await User.findById(id).select("-password -refreshTokan -fullname -avatarPublicId -coverImagePublicId -videos -watchHistory -createdAt -updatedAt -__v -email -_id -coverImage -refreshToken");
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
   return res
     .status(200)
-    .json(new ApiResponce(200, req.user, "User fached successfully"));
+    .json(new ApiResponce(200, user, "User fetched successfully"));
   //  return user;
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { fullname, email } = req.body;
-  if (!fullname || !email) {
-    throw new ApiError(400, "Email and Fullname both are required");
+  const { fullname } = req.body;
+  if (!fullname) {
+    throw new ApiError(400, " Fullname both are required");
   }
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $set: {
         fullname,
-        email,
       },
     },
     { new: true }
-  ).select("-password");
+  ).select("-password -refreshTokan");
 
   return res
     .status(200)
@@ -549,13 +553,70 @@ const deleteUserHistory = asyncHandler(async (req, res) => {
       new ApiResponce(200, user, "User watch history deleted successfully")
     );
 });
+
+const getUserVideos = asyncHandler(async (req, res) => { 
+  const userId = req.user?._id;
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $project: {
+        password: 0, // hide password
+        refreshToken: 0, // hide refresh token
+        __v: 0, // optional: hide mongoose version key
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "_id",
+        foreignField: "owner",
+        as: "userVideos",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullname: 1,
+                    username: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponce(200, user, "User videos fetched successfully"));
+});
+
 export {
   registerUser,
   loginUser,
   logoutUser,
   refreshAccessTokan,
   changeCurrentPassword,
-  getCurrentUser,
+  getUser,
   updateAccountDetails,
   updateAvatar,
   updateCoverImage,
@@ -563,5 +624,6 @@ export {
   getWatchHistory,
   forExporingAggrigation,
   setWatchHistory,
-  deleteUserHistory
+  deleteUserHistory,
+  getUserVideos,
 };

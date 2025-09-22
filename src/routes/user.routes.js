@@ -1,7 +1,6 @@
 import { Router } from "express";
 import {
   changeCurrentPassword,
-  getCurrentUser,
   getUserChanelProfile,
   getWatchHistory,
   loginUser,
@@ -14,6 +13,8 @@ import {
   updateCoverImage,
   setWatchHistory,
   deleteUserHistory,
+  getUserVideos,
+  getUser,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -34,7 +35,7 @@ router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/refresh-refreshTokan").post(refreshAccessTokan);
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
-router.route("/get-currentUser").get(verifyJWT, getCurrentUser);
+router.route("/get-User/:id").get( getUser);
 router.route("/update-account-details").patch(verifyJWT, updateAccountDetails);
 router
   .route("/update-avatar")
@@ -46,6 +47,7 @@ router.route("/channel-details/:username").get(verifyJWT, getUserChanelProfile);
 router.route("/watch-history").get(verifyJWT, getWatchHistory);
 router.route("/set-watch-history/:videoId").post(verifyJWT, setWatchHistory);
 router.route("/delete-watch-history").delete(verifyJWT, deleteUserHistory);
+router.route("/user-videos").get(verifyJWT, getUserVideos);
 router
   .route("/for-Exporing-Aggrigation")
   .post(verifyJWT, forExporingAggrigation);

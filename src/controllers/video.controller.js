@@ -9,7 +9,8 @@ import {
   deleteFromCloudinaryVideo,
 } from "../utils/deleteImageCloudinary.js";
 const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+  const { page = 1, limit = 20, query, sortBy, sortType, userId } = req.query;
+
   //TODO: get all videos based on query, sort, pagination
 
   if (limit <= 0) {
@@ -116,7 +117,7 @@ const getVideoById = asyncHandler(async (req, res) => {
 
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  const userId = req.user?._id || req.user?.id; // from auth middleware
+  const userId = req.user?._id; // from auth middleware
 
   if (!videoId || !videoId.trim()) {
     throw new ApiError(400, "Video Id is not provided");
@@ -289,6 +290,52 @@ const isPublishVideo = asyncHandler(async (req, res) => {
     );
 });
 
+const setViews = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  const deviceId = req.deviceId;
+  if (!videoId || !videoId.trim()) {
+    throw new ApiError(400, "Please Provide the video ID");
+  }
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video id format");
+  }
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new ApiError(404, "Video Not Found");
+  }
+  if (video.views.includes(deviceId)) {
+    return res
+      .status(200)
+      .json(new ApiResponce(200, {}, "Video view count not changed"));
+  }
+  video.views.push(deviceId);
+  video.views = video.views.length;
+  await video.save();
+  const view = video.views+1;
+  return res
+    .status(200)
+    .json(new ApiResponce(200, view , "Video view count updated successfully"));
+});
+
+const getVideoUserById = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  //TODO: get video by id 
+  if (!userId.trim()) {
+    throw new ApiError(400, "please give video id");
+  }
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new ApiError(400, "Invalid video id format");
+  }
+  const video = await Video.find({owner:userId});
+
+  if (!video) {
+    throw new ApiError(404, "Not found this id releted video");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponce(200, video, "Video feached Successfully"));
+});
+
 export {
   deleteVideo,
   updateVideo,
@@ -298,4 +345,6 @@ export {
   updateThumbnel,
   isPublishVideo,
   updateVideoDetiles,
+  setViews,
+  getVideoUserById
 };

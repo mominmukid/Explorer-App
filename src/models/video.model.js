@@ -68,13 +68,10 @@ const videoSchema = new mongoose.Schema(
       type: Number, //coudynary url
       required: true,
     },
-    views: {
-      type: Number, //coudynary url
-      default: 0,
-    },
+    views: [{ type: String }], //array of deviceId
     isPublished: {
       type: Boolean,
-      default: true,
+      default: true, 
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
