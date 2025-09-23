@@ -11,28 +11,27 @@ import {
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, query, sortBy, sortType, userId } = req.query;
 
-  //TODO: get all videos based on query, sort, pagination
-
   if (limit <= 0) {
     throw new ApiError(400, "Page and limit must be positive numbers");
   }
 
   const skip = (page - 1) * limit;
 
-  // fiter
+  // Filter
   const filter = {};
-  if (query) {
-    filter.title = { $regex: query, $options: "i" };
-  }
-  if (userId) {
-    filter.owner = userId;
+  if (query) filter.title = { $regex: query, $options: "i" };
+  if (userId) filter.owner = userId;
+
+  // Sort
+  let sort = {};
+  if (sortBy) {
+    sort[sortBy] = sortType === "asc" ? 1 : -1;
+  } else {
+    // Default sort: latest uploaded first
+    sort = { createdAt: -1 };
   }
 
-  //sort
-  const sort = {};
-  sort[sortBy] = sortType === "asc" ? 1 : -1;
-
-  //get videos
+  // Get videos
   const videos = await Video.find(filter)
     .sort(sort)
     .skip(skip)
@@ -41,10 +40,12 @@ const getAllVideos = asyncHandler(async (req, res) => {
   if (!videos || videos.length === 0) {
     return res.status(404).json({ message: "No videos found" });
   }
+
   return res
     .status(200)
-    .json(new ApiResponce(200, videos, "Videos featched successfully"));
+    .json(new ApiResponce(200, videos, "Videos fetched successfully"));
 });
+
 
 const publishVideo = asyncHandler(async (req, res) => {
   const { title, description, category } = req.body;
@@ -61,6 +62,7 @@ const publishVideo = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Thumbnel file must be required");
   }
   const video = await uploadOnCloudinary(videoLocalPath);
+
   const thumbnel = await uploadOnCloudinary(thumbnelLocalPath);
   if (!video) {
     throw new ApiError(400, "Video file must be required");

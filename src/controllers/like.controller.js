@@ -27,38 +27,101 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
   let likeDoc = await Like.findOne({ likeBy: userId });
 
   if (!likeDoc) {
-    // if user has no like doc, create new
+    // if user has no like doc, create new with this video
     likeDoc = await Like.create({
       likeBy: userId,
       video: [videoId],
     });
     return res
       .status(201)
-      .json(new ApiResponce(201, likeDoc, "Like added successfully"));
+      .json(new ApiResponce(201, likeDoc, "Video liked successfully"));
   }
-  // if likeDoc already exists, check if video is included
-  const isLiked = await Like.findOne({
-    likeBy: userId,
-    video: { $in: [videoId] },
-  });
+
+  // check if video is already liked
+  const isLiked = likeDoc.video.includes(videoId);
 
   if (isLiked) {
-    return res.status(200).json(new ApiResponce(200, " likced already"));
+    // remove video from liked list
+    const updatedLike = await Like.findByIdAndUpdate(
+      likeDoc._id,
+      { $pull: { video: videoId } },
+      { new: true }
+    );
+    return res
+      .status(200)
+      .json(new ApiResponce(200, updatedLike, "Video unliked successfully"));
+  } else {
+    // add video to liked list
+    const updatedLike = await Like.findByIdAndUpdate(
+      likeDoc._id,
+      { $addToSet: { video: videoId } },
+      { new: true }
+    );
+    return res
+      .status(200)
+      .json(new ApiResponce(200, updatedLike, "Video liked successfully"));
   }
-
-  const newLike = await Like.findByIdAndUpdate(
-    likeDoc._id,
-    { $addToSet: { video: videoId } }, // prevents duplicates
-    { new: true }
-  );
-  return res
-    .status(200)
-    .json(new ApiResponce(200, newLike, "Like added successfullyyyyy"));
 });
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
   const userId = req.user?._id;
+
+  if (!commentId?.trim()) {
+    throw new ApiError(400, "Comment id is required");
+  }
+  if (!isValidObjectId(commentId)) {
+    throw new ApiError(400, "Invalid comment id format");
+  }
+
+  const comment = await Comment.findById(commentId);
+  if (!comment) {
+    throw new ApiError(404, "Comment not found");
+  }
+
+  // find like doc for this user
+  let commentLikeDoc = await Like.findOne({ likeBy: userId });
+
+  if (!commentLikeDoc) {
+    // if user has no like doc, create new with this comment
+    commentLikeDoc = await Like.create({
+      likeBy: userId,
+      comment: [commentId],
+    });
+    return res
+      .status(201)
+      .json(new ApiResponce(201, commentLikeDoc, "Comment liked successfully"));
+  }
+
+  // check if comment is already liked
+  const isLiked = commentLikeDoc.comment.includes(commentId);
+
+  if (isLiked) {
+    // remove comment from liked list
+    const updatedLike = await Like.findByIdAndUpdate(
+      commentLikeDoc._id,
+      { $pull: { comment: commentId } },
+      { new: true }
+    );
+    return res
+      .status(200)
+      .json(new ApiResponce(200, updatedLike, "Comment unliked successfully"));
+  } else {
+    // add comment to liked list
+    const updatedLike = await Like.findByIdAndUpdate(
+      commentLikeDoc._id,
+      { $addToSet: { comment: commentId } },
+      { new: true }
+    );
+    return res
+      .status(200)
+      .json(new ApiResponce(200, updatedLike, "Comment liked successfully"));
+  }
+});
+
+
+const getCommentLike = asyncHandler(async (req, res) => {
+  const { commentId } = req.params;
   if (!commentId?.trim()) {
     throw new ApiError(400, "Comment id is required");
   }
@@ -68,40 +131,14 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 
   const comment = await Comment.findById(commentId);
   if (!comment) {
-    throw new ApiError(404, "Comment not found");
+    return ApiResponce(200, "Comment not found");
   }
-
-  // find like doc for this user
-  let commentDoc = await Like.findOne({ likeBy: userId });
-
-  if (!commentDoc) {
-    // if user has no like doc, create new
-    commentDoc = await Like.create({
-      likeBy: userId,
-      comment: [commentId],
-    });
-    return res
-      .status(201)
-      .json(new ApiResponce(201, commentDoc, "Like added successfully"));
-  }
-  // if likeDoc already exists, check if video is included
-  const isLiked = await Like.findOne({
-    likeBy: userId,
+  const isLiked = await Like.find({
     comment: { $in: [commentId] },
   });
-
-  if (isLiked) {
-    return res.status(200).json(new ApiResponce(200, "User likced already"));
-  }
-
-  const newCommentDoc = await Like.findByIdAndUpdate(
-    commentDoc._id,
-    { $addToSet: { comment: commentId } }, // prevents duplicates
-    { new: true }
-  );
   return res
     .status(200)
-    .json(new ApiResponce(200, newCommentDoc, "Like added successfullyyyyy"));
+    .json(new ApiResponce(200, isLiked, "fetched Comment successfully"));
 });
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
@@ -212,22 +249,28 @@ const getLikedVideos = asyncHandler(async (req, res) => {
 const getVideoLikes = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   if (!videoId?.trim()) {
-    throw new ApiError(400, "Video id is required");
+    throw new ApiError(400, "Comment id is required");
   }
   if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "Invalid video id format");
   }
-  const video = await Video.findById(videoId);
-  if (!video) {
+
+  const comment = await Video.findById(videoId);
+  if (!comment) {
     throw new ApiError(404, "Video not found");
   }
-    video.likeCount = await Like.countDocuments({ video: { $in: [videoId] } });
-    await video.save();
-    let data=video.likeCount 
+  const isLiked = await Like.find({
+    video: { $in: [videoId] },
+  });
   return res
     .status(200)
-    .json(
-      new ApiResponce(200, {data  }, "likes count feached successfully")
-    );
+    .json(new ApiResponce(200, isLiked, "fetched Comment successfully"));
 });
-export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos,getVideoLikes };
+export {
+  toggleCommentLike,
+  toggleTweetLike,
+  toggleVideoLike,
+  getLikedVideos,
+  getVideoLikes,
+  getCommentLike,
+};

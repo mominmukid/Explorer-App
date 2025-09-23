@@ -8,42 +8,54 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
   const userId = req.user?._id;
+
   if (!channelId || !channelId.trim()) {
-    throw new ApiError(400, "please provide the Channal Id or userId");
+    throw new ApiError(400, "Please provide the Channel Id");
   }
   if (!isValidObjectId(channelId)) {
-    throw new ApiError(400, "Invalid video id format");
+    throw new ApiError(400, "Invalid channel id format");
   }
-  const channal = await Subcription.find({ channel: channelId });
-  if (channal.length <= 0) {
+
+  // check if subscription doc exists for this channel
+  let channelDoc = await Subcription.findOne({ channel: channelId });
+
+  if (!channelDoc) {
+    // if no doc, create new with this user as subscriber
     const newChannel = await Subcription.create({
       channel: channelId,
       subscriber: [userId],
     });
     return res
-      .status(200)
+      .status(201)
       .json(
-        new ApiResponce(200, newChannel, "Channel subscribed successfully ")
+        new ApiResponce(201, newChannel, "Channel subscribed successfully")
       );
   }
 
-  const isSubcribed = await Subcription.findOne({
-    channel: channelId,
-    subscriber: { $in: [userId] },
-  });
+  // check if user is already subscribed
+  const isSubscribed = channelDoc.subscriber.includes(userId);
 
-  if (isSubcribed) {
-    return res.status(200).json(new ApiResponce(200, "User Subcribed already"));
+  if (isSubscribed) {
+    // unsubscribe: pull userId from subscriber array
+    const updated = await Subcription.findByIdAndUpdate(
+      channelDoc._id,
+      { $pull: { subscriber: userId } },
+      { new: true }
+    );
+    return res
+      .status(200)
+      .json(new ApiResponce(200, updated, "User unsubscribed successfully"));
+  } else {
+    // subscribe: add userId
+    const updated = await Subcription.findByIdAndUpdate(
+      channelDoc._id,
+      { $addToSet: { subscriber: userId } },
+      { new: true }
+    );
+    return res
+      .status(200)
+      .json(new ApiResponce(200, updated, "User subscribed successfully"));
   }
-
-  const newSubcribed = await Subcription.findByIdAndUpdate(
-    channal._id,
-    { $addToSet: { subscriber: userId } }, // prevents duplicates
-    { new: true }
-  );
-  return res
-    .status(200)
-    .json(new ApiResponce(200, newSubcribed, "user Subcribed successfully"));
 });
 
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
@@ -73,14 +85,19 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
   if (!isValidObjectId(subscriberId)) {
     throw new ApiError(400, "Invalid video id format");
   }
-  const subscribeChannel= await Subcription.aggregate([
-   {$match:{subscriber:new mongoose.Types.ObjectId(subscriberId)}}
+  const subscribeChannel = await Subcription.aggregate([
+    { $match: { subscriber: new mongoose.Types.ObjectId(subscriberId) } },
   ]);
 
-  return res.status(200).json(
-   new ApiResponce(200,subscribeChannel,"User subscription channel fached success fully")
-  )
-
+  return res
+    .status(200)
+    .json(
+      new ApiResponce(
+        200,
+        subscribeChannel,
+        "User subscription channel fached success fully"
+      )
+    );
 });
 
 const getChannelSubscribers = asyncHandler(async (req, res) => {
@@ -91,19 +108,27 @@ const getChannelSubscribers = asyncHandler(async (req, res) => {
   if (!isValidObjectId(channelId)) {
     throw new ApiError(400, "Invalid video id format");
   }
-  const subscribers = await Subcription
-    .findOne({ channel: channelId }); // populate subscriber details from User model
+  const subscribers = await Subcription.findOne({ channel: channelId }); // populate subscriber details from User model
 
-  if (!subscribers) { 
+  if (!subscribers) {
     return res
       .status(200)
       .json(new ApiResponce(200, [], "No subscribers found for this channel"));
-  }   
+  }
   return res
     .status(200)
-    .json(new ApiResponce(200, subscribers.subscriber, "Subscribers fetched successfully"));
+    .json(
+      new ApiResponce(
+        200,
+        subscribers.subscriber,
+        "Subscribers fetched successfully"
+      )
+    );
 });
 
-
-
-export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels,getChannelSubscribers };
+export {
+  toggleSubscription,
+  getUserChannelSubscribers,
+  getSubscribedChannels,
+  getChannelSubscribers,
+};

@@ -30,7 +30,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
 const addComment = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { content } = req.body;
-  const userId = req.user?._id;
+  const userId = req.user?._id;    
   if (!videoId || !videoId.trim() || !content || !content.trim()) {
     throw new ApiError(400, "Please provide the Video id");
   }
@@ -102,6 +102,6 @@ const deleteComment = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponce(200, {}, "Comment deleted successfully"));
-});
+}); 
 
 export { addComment, updateComment, deleteComment, getVideoComments };
