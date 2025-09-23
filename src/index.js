@@ -4,7 +4,7 @@ import app from "./app.js";
 
 // this is the standard middleware for handling errors
 dotenv.config();
-
+ 
 connectDB()
   .then(
     app.listen(process.env.PORT || 8000, () => {
