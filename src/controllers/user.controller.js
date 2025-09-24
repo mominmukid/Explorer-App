@@ -165,8 +165,9 @@ const logoutUser = asyncHandler(async (req, res) => {
   );
 
   const option = {
-    httpOnly: true,
-    secure: true,
+    httpOnly: true, // not accessible via JS
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict", // helps against CSRF
   };
   return res
     .status(200)
@@ -244,8 +245,10 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getUser = asyncHandler(async (req, res) => {
-  const {id} = req.params;
-  const user = await User.findById(id).select("-password -refreshTokan -fullname -avatarPublicId -coverImagePublicId -videos -watchHistory -createdAt -updatedAt -__v -email -_id -coverImage -refreshToken");
+  const { id } = req.params;
+  const user = await User.findById(id).select(
+    "-password -refreshTokan -fullname -avatarPublicId -coverImagePublicId -videos -watchHistory -createdAt -updatedAt -__v -email -_id -coverImage -refreshToken"
+  );
   if (!user) {
     throw new ApiError(404, "User not found");
   }
@@ -554,7 +557,7 @@ const deleteUserHistory = asyncHandler(async (req, res) => {
     );
 });
 
-const getUserVideos = asyncHandler(async (req, res) => { 
+const getUserVideos = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
   const user = await User.aggregate([
     {
