@@ -4,9 +4,14 @@ import cookieParser from "cookie-parser";
 const app = express();
 // this is the standard middleware for CORS
 app.use(cors({
-  origin: [ "http://localhost:5173", "https://your-frontend.vercel.app",`https://videotubesite.netlify.app`],
-  credentials: true,
+  origin: [
+    "http://localhost:5173",
+    "https://your-frontend.vercel.app",
+    "https://videotubesite.netlify.app"
+  ],
+  credentials: true
 }));
+
 
 // this is the standard middleware for parsing JSON requests
 app.use(express.json({ limit: "16kb" }));
