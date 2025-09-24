@@ -65,7 +65,7 @@ userSchema.pre("save", async function (next) {
 //this code use for the check the password is valid or same as user and database
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
-};
+}; 
 
 // this code genrate the access tokan using jwt for the authenticate the user is real or not
 userSchema.methods.generateAccessToken = function () {

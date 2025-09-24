@@ -104,52 +104,45 @@ const registerUser = asyncHandler(async (req, res) => {
 //this method handles user login
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  if (!email.trim() || !password.trim()) {
-    throw new ApiError(400, "Email or  password is required ");
+
+  if (!email?.trim() || !password?.trim()) {
+    throw new ApiError(400, "Email and password are required");
   }
-  // check if user exists
-  const user = await User.findOne({ $or: [{ email }] });
+
+  const user = await User.findOne({ email });
   if (!user) {
     throw new ApiError(404, "User not found");
   }
 
-  // this is pass the password in the usermodel and user model have ispasswordvalid method to check the user password and database password is same or not
-  // const isMatch = user.password === password;
-
   const isPasswordValid = await user.isPasswordCorrect(password);
   if (!isPasswordValid) {
-    throw new ApiError(401, "Invalid user Tokan");
+    throw new ApiError(401, "Invalid credentials");
   }
-  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-    user._id
-  );
 
-  const loggedInuser = await User.findById(user._id).select(
-    "-password -refreshTokan"
-  );
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
 
-  const option = {
-    httpOnly: true, // not accessible via JS
-    secure: true,
-    sameSite: "None", 
+  const loggedInUser = await User.findById(user._id).select("-password -refreshTokan");
+
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    maxAge: 100 * 60 * 60 * 1000, // 1 day
   };
 
   return res
     .status(200)
-    .cookie("refreshToken", refreshToken, option)
-    .cookie("accessToken", accessToken, option)
+    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, options)
     .json(
       new ApiResponce(
         200,
-        {
-          user: loggedInuser,
-          refreshToken,
-          accessToken,
-        },
-        "User Logged in successfully !!!"
+        { user: loggedInUser },
+        "User logged in successfully!"
       )
     );
 });
+
 //************************************************************* */
 // this is  for the logout user
 const logoutUser = asyncHandler(async (req, res) => {
