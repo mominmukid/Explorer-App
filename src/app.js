@@ -2,15 +2,17 @@ import dotenv from "dotenv";
 import connectDB from "./db/index.js";
 import app from "./server.js";
 
-// this is the standard middleware for handling errors
 dotenv.config();
- 
+
+const PORT = process.env.PORT || 8000;
+
 connectDB()
-  .then(
-    app.listen(process.env.PORT || 8000, () => {
-      console.log(`server start on port ${process.env.PORT}`);
-    })
-  )
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  })
   .catch((error) => {
-    console.log("MONGODB connection error !!!!");
+    console.error("❌ MONGODB connection error:", error.message);
+    process.exit(1); // crash the process in production if DB fails
   });
