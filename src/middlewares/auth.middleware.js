@@ -5,31 +5,31 @@ import jwt from "jsonwebtoken";
 
 const verifyJWT = asyncHandler(async (req, _, next) => {
   try {
-    
-     
-    
-    const tokan =
-      (await req.cookies?.accessToken) ||
-      req.header("Authorization")?.replace("Bearer", "");
-    if (!tokan) {
-      new ApiError(401, "Unauthorise request");
-    }
-    
-    const decodedInfo = jwt.verify(tokan, process.env.ACCESS_TOKEN_SECRET);
+    // Get token from cookie or header
+    const token =
+      req.cookies?.accessToken ||
+      req.header("Authorization")?.replace("Bearer ", "").trim();
 
-    const user = await User.findById(decodedInfo?._id).select(
-      "-password -refreshTokan"
-    );
-    
-    if (!user) {
-      new ApiError(401, "Invalid AccessTokan");
+    if (!token) {
+      throw new ApiError(401, "Unauthorized request");
     }
-    
-    ((req.user = user), next());
-    
+
+    // Verify token
+    const decodedInfo = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+    // Find user without password & refreshToken
+    const user = await User.findById(decodedInfo?._id).select(
+      "-password -refreshToken"
+    );
+
+    if (!user) {
+      throw new ApiError(401, "Invalid Access Token");
+    }
+
+    req.user = user; // attach user to request
+    next();
   } catch (error) {
-    throw new ApiError(401, error.message || "Invalid AccessTokan");
-    
+    throw new ApiError(401, error.message || "Invalid Access Token");
   }
 });
 
