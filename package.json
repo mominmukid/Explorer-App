@@ -4,8 +4,8 @@
   "main": "src/app.js",
   "type": "module",
   "scripts": {
-    "start": "node ./src/app.js",
-    "dev": "nodemon -r dotenv/config src/app.js"
+    "start": "node ./src/server.js",
+    "dev": "nodemon -r dotenv/config src/server.js"
   },
   "author": "mukid momin",
   "license": "ISC",
