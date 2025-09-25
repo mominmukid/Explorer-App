@@ -9,10 +9,9 @@ import {
 
 const router = Router();
 
-router.use(verifyJWT);
-router.route("/createcomnent/:videoId").post(addComment);
-router.route("/updatecomment/:commentId").patch(updateComment);
-router.route("/deletecomment/:commentId").delete(deleteComment);
+router.route("/createcomnent/:videoId").post(verifyJWT, addComment);
+router.route("/updatecomment/:commentId").patch(verifyJWT, updateComment);
+router.route("/deletecomment/:commentId").delete(verifyJWT, deleteComment);
 router.route("/getallvideocomment/:videoId").get(getVideoComments);
 
 export default router;

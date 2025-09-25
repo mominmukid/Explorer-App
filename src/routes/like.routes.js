@@ -14,7 +14,7 @@ const router = Router();
 router.route("/togglelike/:videoId").post(verifyJWT,toggleVideoLike);
 router.route("/togglecomment/:commentId").post(verifyJWT,toggleCommentLike);
 router.route("/toggletweet/:tweetId").post(verifyJWT,toggleTweetLike);
-router.route("/getlikedvideos").get(verifyJWT,getLikedVideos);
+router.route("/getuserlikedvideos").get(verifyJWT,getLikedVideos);
 router.route("/getvideolikes/:videoId").get(getVideoLikes);
 router.route("/getcommentlikes/:commentId").get(getCommentLike);
 

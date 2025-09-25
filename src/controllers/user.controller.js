@@ -119,20 +119,31 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid credentials");
   }
 
-  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
 
-  const loggedInUser = await User.findById(user._id).select("-password -refreshTokan");
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshTokan"
+  );
 
   const options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: "none",
+    path: "/",
   };
 
   return res
     .status(200)
-    .cookie("refreshToken", refreshToken, options)
     .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .cookie("isLoggedin", true, {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    })
     .json(
       new ApiResponce(
         200,
@@ -145,8 +156,9 @@ const loginUser = asyncHandler(async (req, res) => {
 //************************************************************* */
 // this is  for the logout user
 const logoutUser = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
   const user = await User.findByIdAndUpdate(
-    req.user._id,
+    userId,
     {
       $unset: {
         refreshToken: 1, // this removes the field from document
@@ -157,14 +169,16 @@ const logoutUser = asyncHandler(async (req, res) => {
     }
   );
 
-  const option = {
+  const options = {
     httpOnly: true,
     secure: true,
+    sameSite: "none",
   };
   return res
     .status(200)
-    .clearCookie("accessToken", option)
-    .clearCookie("refreshToken", option)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .clearCookie("isLoggedin", options)
     .json(new ApiResponce(200, user, "Logout successfully "));
 });
 
@@ -237,8 +251,10 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getUser = asyncHandler(async (req, res) => {
-  const {id} = req.params;
-  const user = await User.findById(id).select("-password -refreshTokan -fullname -avatarPublicId -coverImagePublicId -videos -watchHistory -createdAt -updatedAt -__v -email -_id -coverImage -refreshToken");
+  const { id } = req.params;
+  const user = await User.findById(id).select(
+    "-password -refreshTokan -fullname -avatarPublicId -coverImagePublicId -videos -watchHistory -createdAt -updatedAt -__v -email -_id -coverImage -refreshToken"
+  );
   if (!user) {
     throw new ApiError(404, "User not found");
   }
@@ -547,7 +563,7 @@ const deleteUserHistory = asyncHandler(async (req, res) => {
     );
 });
 
-const getUserVideos = asyncHandler(async (req, res) => { 
+const getUserVideos = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
   const user = await User.aggregate([
     {

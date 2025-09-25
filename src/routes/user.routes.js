@@ -32,7 +32,7 @@ router.route("/register").post(
 router.route("/login").post(loginUser);
 
 // secured route
-router.route("/logout").post(verifyJWT, logoutUser);
+router.route("/logout").get(verifyJWT, logoutUser);
 router.route("/refresh-refreshTokan").post(refreshAccessTokan);
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 router.route("/get-User/:id").get( getUser);
