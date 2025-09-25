@@ -129,8 +129,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production", // only true in prod
+    sameSite: "none", // for cross-site (frontend & backend different domains)
     path: "/",
   };
 
