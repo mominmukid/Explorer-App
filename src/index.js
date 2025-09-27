@@ -7,8 +7,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://froentend-for-explorer-app.vercel.app",
-      "https://videotubesite.netlify.app",
+      "https://wideview.netlify.app",
     ],
     credentials: true,
   })
@@ -34,7 +33,7 @@ import subscribRouter from "./routes/subcription.routes.js";
 //routes decleration
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/tweet", tweetRouter);
-app.use("/api/v1/videos", videoRouter);
+app.use("/api/v1/videos", videoRouter); 
 app.use("/api/v1/playlist", playListRouter);
 app.use("/api/v1/like", likeRouter);
 app.use("/api/v1/comment", commentRouter);

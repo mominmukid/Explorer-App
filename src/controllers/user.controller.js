@@ -93,9 +93,17 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!userCreated) {
     throw new ApiError(500, "Something went wrong while user register");
   }
+
   // user created successfully
+  // set cookoies
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
+
   return res
     .status(201)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
     .json(new ApiResponce(200, userCreated, "User Created successfully"));
 });
 
@@ -233,7 +241,7 @@ const refreshAccessTokan = asyncHandler(async (req, res) => {
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
-  const { newPssword, oldPassword } = req.body;
+  const { newPassword, oldPassword } = req.body;
 
   const user = await User.findById(req.user?._id);
   if (!user) {
@@ -243,7 +251,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   if (!isOldPasswordCorrect) {
     return new ApiError(400, "Invalid Old Password");
   }
-  user.password = newPssword;
+  user.password = newPassword;
   await user.save({ validateBeforeSave: false });
   return res
     .status(200)
