@@ -4,17 +4,26 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import { Video } from "../models/video.model.js";
 import mongoose, { isValidObjectId } from "mongoose";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteFromCloudinary } from "../utils/deleteImageCloudinary.js";
 
 const createPlaylist = asyncHandler(async (req, res) => {
+  const thumbnelLocalPath = req.file?.path;
   const { name, description } = req.body;
   if (!name.trim() !== !description.trim()) {
     throw new ApiError(400, "Name and description is required");
   }
   const userId = req.user?._id;
+  const thumbnel = await uploadOnCloudinary(thumbnelLocalPath);
+  if (!thumbnel) {
+    throw new ApiError(400, "Error while uploading the file ");
+  }
   const playList = await Playlist.create({
     name,
     description,
     owner: userId,
+    thumbnail: thumbnel.url,
+    thumbnailPublicId: thumbnel.public_id || " ",
   });
   if (!playList) {
     throw new ApiError(500, "Something went while create database ");
@@ -25,14 +34,10 @@ const createPlaylist = asyncHandler(async (req, res) => {
 });
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
+  
+  const userId = req.user?._id;
+
   //TODO: get user playlists
-  if (!userId) {
-    throw new ApiError(400, "UserId Must be provieded");
-  }
-  if (!isValidObjectId(userId)) {
-    throw new ApiError(400, "Invalid video id format");
-  }
   const playList = await Playlist.find({ owner: userId });
   if (!playList) {
     throw new ApiError(400, "Playlist not found");
@@ -159,6 +164,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
 });
 const updatePlayListDetails = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
+  const userId = req?.user._id;
   const { playListId } = req.params;
   if (!name.trim() || !description.trim()) {
     throw new ApiError(400, "Name and description is required");
@@ -179,8 +185,7 @@ const updatePlayListDetails = asyncHandler(async (req, res) => {
   }
   playlist.name = name;
   playlist.description = description;
-  await Playlist.save();
-
+  await playlist.save();
   return res
     .status(200)
     .json(new ApiResponce(200, playlist, "PlayList updated successfully"));
@@ -203,6 +208,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
   if (!playlist) {
     throw new ApiError(400, "PlayList is not found");
   }
+  deleteFromCloudinary(playlist .thumbnailPublicId || "");
   const result = await Playlist.deleteOne({
     _id: playlistId,
     owner: userId,

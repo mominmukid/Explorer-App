@@ -4,7 +4,7 @@ const playlistSchema = new mongoose.Schema(
   {
     description: {
       type: String,
-      required:true
+      required: true,
     },
     name: {
       type: String,
@@ -14,6 +14,13 @@ const playlistSchema = new mongoose.Schema(
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+    thumbnail: {
+      type: String, //coudynary url
+      // required: true,
+    },
+    thumbnailPublicId: {
+      type: String,
     },
   },
   { timestamps: true }

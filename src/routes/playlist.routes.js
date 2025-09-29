@@ -9,20 +9,25 @@ import {
   removeVideoFromPlaylist,
   updatePlayListDetails,
 } from "../controllers/playlist.controller.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 
-router.use(verifyJWT);
-router.route("/crete-playlist").post(createPlaylist);
+// router.use(verifyJWT);
+router
+  .route("/crete-playlist")
+  .post(verifyJWT, upload.single("Thumbnel"), createPlaylist);
 router.route("/getpaly-listbyid/:playlistId").get(getPlaylistById);
-router.route("/get-user-playlists/:userId").get(getUserPlaylists);
+router.route("/getuserplaylists").get(verifyJWT, getUserPlaylists);
 router
   .route("/addvideo-playlist/:playlistId/:videoId")
-  .post(addVideoToPlaylist);
+  .post(verifyJWT, addVideoToPlaylist);
 router
   .route("/remove-video/:playlistId/:videoId")
-  .delete(removeVideoFromPlaylist);
-router.route("/updatedetails/:playListId").post(updatePlayListDetails);
-router.route("/deleteplaylist/:playlistId").delete(deletePlaylist);
+  .delete(verifyJWT, removeVideoFromPlaylist);
+router
+  .route("/updatedetails/:playListId")
+  .post(verifyJWT, updatePlayListDetails);
+router.route("/deleteplaylist/:playlistId").delete(verifyJWT, deletePlaylist);
 
 export default router;
