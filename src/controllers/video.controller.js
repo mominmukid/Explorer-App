@@ -1,4 +1,5 @@
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import { Video } from "../models/video.model.js";
@@ -8,43 +9,50 @@ import {
   deleteFromCloudinary,
   deleteFromCloudinaryVideo,
 } from "../utils/deleteImageCloudinary.js";
-const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 20, query, sortBy, sortType, userId } = req.query;
 
-  if (limit <= 0) {
-    throw new ApiError(400, "Page and limit must be positive numbers");
-  }
 
-  const skip = (page - 1) * limit;
+  const getAllVideos = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 20, query, sortBy, sortType, userId } = req.query;
 
-  // Filter
-  const filter = {};
-  if (query) filter.title = { $regex: query, $options: "i" };
-  if (userId) filter.owner = userId;
+    if (limit <= 0) {
+      throw new ApiError(400, "Page and limit must be positive numbers");
+    }
 
-  // Sort
-  let sort = {};
-  if (sortBy) {
-    sort[sortBy] = sortType === "asc" ? 1 : -1;
-  } else {
-    // Default sort: latest uploaded first
-    sort = { createdAt: -1 };
-  }
+    const skip = (page - 1) * limit;
 
-  // Get videos
-  const videos = await Video.find(filter)
-    .sort(sort)
-    .skip(skip)
-    .limit(Number(limit));
+    // Filter
+    const filter = {};
+    if (query) {
+      filter.$or = [
+        { title: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+      ];
+    }
+    if (userId) filter.owner = userId;
 
-  if (!videos || videos.length === 0) {
-    return res.status(404).json({ message: "No videos found" });
-  }
+    // Sort
+    let sort = {};
+    if (sortBy) {
+      sort[sortBy] = sortType === "asc" ? 1 : -1;
+    } else {
+      sort = { createdAt: -1 }; // Default latest first
+    }
 
-  return res
-    .status(200)
-    .json(new ApiResponce(200, videos, "Videos fetched successfully"));
-});
+    // Get videos
+    const videos = await Video.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(Number(limit));
+
+    if (!videos || videos.length === 0) {
+      return res.status(404).json({ message: "No videos found" });
+    }
+
+    return res
+      .status(200)
+      .json(new ApiResponce(200, videos, "Videos fetched successfully"));
+  });
+
 
 
 const publishVideo = asyncHandler(async (req, res) => {
