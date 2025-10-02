@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       required: true,
-      unique: true,
+      // unique: true,
       lowercase: true,
       trim: true,
       index: true,
@@ -21,13 +21,13 @@ const userSchema = new mongoose.Schema(
     },
     fullname: {
       type: String,
-      required: true,
+      // required: true,
       index: true,
       trim: true,
     },
     password: {
       type: String,
-      required: true,
+      // required: true,
     },
     avatar: {
       type: String, //coudenary url
@@ -43,10 +43,6 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
     watchHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
-    password: {
-      type: String,
-      required: true,
-    },
     refreshToken: {
       type: String,
     },

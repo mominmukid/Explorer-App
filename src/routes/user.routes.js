@@ -15,6 +15,7 @@ import {
   deleteUserHistory,
   getUserVideos,
   getUser,
+  googleOauth,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -35,7 +36,7 @@ router.route("/login").post(loginUser);
 router.route("/logout").get(verifyJWT, logoutUser);
 router.route("/refresh-refreshTokan").post(refreshAccessTokan);
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
-router.route("/get-User/:id").get( getUser);
+router.route("/get-User/:id").get(getUser);
 router.route("/update-account-details").patch(verifyJWT, updateAccountDetails);
 router
   .route("/update-avatar")
@@ -51,4 +52,5 @@ router.route("/user-videos").get(verifyJWT, getUserVideos);
 router
   .route("/for-Exporing-Aggrigation")
   .post(verifyJWT, forExporingAggrigation);
+router.route("/googlelogin").get(googleOauth);
 export default router;

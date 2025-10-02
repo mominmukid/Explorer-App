@@ -6,6 +6,8 @@ import { ApiResponce } from "../utils/ApiResponce.js";
 import jwt from "jsonwebtoken";
 import { deleteFromCloudinary } from "../utils/deleteImageCloudinary.js";
 import mongoose from "mongoose";
+import axios from 'axios'
+import oauth2Client from "../utils/googleClient.js";
 
 //this is use to genrate the access and refrash tokan
 const generateAccessAndRefreshToken = async (userId) => {
@@ -139,6 +141,59 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid Password");
   }
 
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
+
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshTokan"
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // only true in prod
+    // secure: true, // only true in prod
+    sameSite: "none", // for cross-site (frontend & backend different domains)
+    path: "/",
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .cookie("isLoggedin", true, {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    })
+    .json(
+      new ApiResponce(
+        200,
+        { user: loggedInUser },
+        "User logged in successfully!"
+      )
+    );
+});
+
+const googleOauth = asyncHandler(async (req, res) => {
+  const code = req.query.code;
+  const googleRes = await oauth2Client.getToken(code);
+  oauth2Client.setCredentials(googleRes.tokens);
+  const userRes = await axios.get(
+    `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`
+  );
+  const { email, name, picture } = userRes.data;
+  // console.log(userRes);
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    user = await User.create({
+      username: name,
+      email,
+      avatar: picture,
+    });
+  }
   const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
     user._id
   );
@@ -656,4 +711,5 @@ export {
   setWatchHistory,
   deleteUserHistory,
   getUserVideos,
+  googleOauth,
 };
