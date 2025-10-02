@@ -6,7 +6,7 @@ import { ApiResponce } from "../utils/ApiResponce.js";
 import jwt from "jsonwebtoken";
 import { deleteFromCloudinary } from "../utils/deleteImageCloudinary.js";
 import mongoose from "mongoose";
-import axios from 'axios'
+import axios from "axios";
 import oauth2Client from "../utils/googleClient.js";
 
 //this is use to genrate the access and refrash tokan
@@ -152,7 +152,6 @@ const loginUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", // only true in prod
-    // secure: true, // only true in prod
     sameSite: "none", // for cross-site (frontend & backend different domains)
     path: "/",
   };
@@ -205,7 +204,6 @@ const googleOauth = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", // only true in prod
-    // secure: true, // only true in prod
     sameSite: "none", // for cross-site (frontend & backend different domains)
     path: "/",
   };
