@@ -302,7 +302,6 @@ const isPublishVideo = asyncHandler(async (req, res) => {
 
 const setViews = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  const deviceId = req.deviceId;
   if (!videoId || !videoId.trim()) {
     throw new ApiError(400, "Please Provide the video ID");
   }
@@ -313,15 +312,9 @@ const setViews = asyncHandler(async (req, res) => {
   if (!video) {
     throw new ApiError(404, "Video Not Found");
   }
-  if (video.views.includes(deviceId)) {
-    return res
-      .status(200)
-      .json(new ApiResponce(200, {}, "Video view count not changed"));
-  }
-  video.views.push(deviceId);
-  video.views = video.views.length;
+  const view =video.viewsCount + 1;
+  video.viewsCount = view;
   await video.save();
-  const view = video.views+1;
   return res
     .status(200)
     .json(new ApiResponce(200, view , "Video view count updated successfully"));
