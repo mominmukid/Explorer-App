@@ -21,7 +21,7 @@ router.route("/getvideo/byuserid/:userId").get(verifyJWT,getVideoUserById)
 router.route("/getvideo/:videoId").get(getVideoById);
 router.route("/deletevideo/:videoId").delete(verifyJWT, deleteVideo);
 router.route("/change-status/:videoId").post(verifyJWT, isPublishVideo);
-router.route("/set-views/:videoId").post(deviceIdMiddleware, setViews);
+router.route("/set-views/:videoId").post(  setViews);
 router.route("/update-deatils/:videoId").patch(verifyJWT, updateVideoDetiles);
 router
   .route("/updatevideo/:videoId")
