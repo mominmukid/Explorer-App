@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node ./src/server.js",
-    "dev": "nodemon ./src/server.js"
+    "dev": "nodemon ./src/server.js",
+    "vercal-start": "node ./src/server.js"
   },
   "author": "mukid momin",
   "license": "ISC",
