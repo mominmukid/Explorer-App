@@ -8,7 +8,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://wideview.netlify.app",
-      "https://froentend-for-explorer-app.vercel.app"
+      // "https://froentend-for-explorer-app.vercel.app"
     ],
     credentials: true,
   })
