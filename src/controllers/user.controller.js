@@ -151,8 +151,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    // secure: process.env.NODE_ENV === "production", // only true in prod
-    // sameSite: "none", // for cross-site (frontend & backend different domains)
+    secure: process.env.NODE_ENV === "production", // only true in prod
+    sameSite: "none", // for cross-site (frontend & backend different domains)
     path: "/",
   };
 
@@ -213,9 +213,9 @@ const googleOauth = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .cookie("isLoggedin", true, {
-      httpOnly: false,
-      secure: true,
-      sameSite: "none",
+      // httpOnly: false,
+      // secure: true,
+      // sameSite: "none",
       path: "/",
     })
     .json(
