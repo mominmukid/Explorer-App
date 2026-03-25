@@ -109,8 +109,8 @@ const registerUser = asyncHandler(async (req, res) => {
   );
   const options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // only true in prod
-    sameSite: "none", // for cross-site (frontend & backend different domains)
+    // secure: process.env.NODE_ENV === "production", // only true in prod
+    // sameSite: "none", // for cross-site (frontend & backend different domains)
     path: "/",
   };
 
@@ -150,8 +150,8 @@ const loginUser = asyncHandler(async (req, res) => {
   );
 
   const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // only true in prod
+    // httpOnly: true,
+    // secure: process.env.NODE_ENV === "production", // only true in prod
     sameSite: "none", // for cross-site (frontend & backend different domains)
     path: "/",
   };
