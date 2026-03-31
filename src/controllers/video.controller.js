@@ -73,10 +73,10 @@ const publishVideo = asyncHandler(async (req, res) => {
 
   const thumbnel = await uploadOnCloudinary(thumbnelLocalPath);
   if (!video) {
-    throw new ApiError(400, "Video file must be required");
+    throw new ApiError(400, "Video file must be required from cloudinary");
   }
   if (!thumbnel) {
-    throw new ApiError(400, "Thumbnel file must be required");
+    throw new ApiError(400, "Thumbnel file must be required from cloudinary");
   }
 
   //create new video document

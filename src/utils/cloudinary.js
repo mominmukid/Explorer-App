@@ -1,23 +1,33 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
 const uploadOnCloudinary = async (filepath) => {
   try {
+    // ✅ Configure INSIDE the function so env vars are already loaded
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
     if (!filepath) return null;
-    //upload
+
     const result = await cloudinary.uploader.upload(filepath, {
       resource_type: "auto",
     });
-    fs.unlinkSync(filepath);
+
+    // ✅ Safe delete after success
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+    }
+
     return result;
+
   } catch (error) {
-    fs.unlinkSync(filepath); // Delete the file if upload fails
+    // ✅ Safe delete on failure
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+    }
     console.error("Error uploading to Cloudinary:", error);
     return null;
   }
