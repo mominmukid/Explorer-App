@@ -141,19 +141,17 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid Password");
   }
 
-  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-    user._id
-  );
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
 
-  const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshTokan"
-  );
+  const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 
+  // ✅ Production ready cookie options
   const options = {
     httpOnly: true,
-    secure: true, // only true in prod
-    sameSite: "none", // for cross-site (frontend & backend different domains)
+    secure: true,
+    sameSite: "none",
     path: "/",
+    // maxAge: 24 * 60 * 60 * 1000, // 1 day
   };
 
   return res
@@ -167,11 +165,7 @@ const loginUser = asyncHandler(async (req, res) => {
       path: "/",
     })
     .json(
-      new ApiResponce(
-        200,
-        { user: loggedInUser },
-        "User logged in successfully!"
-      )
+      new ApiResponce(200, { user: loggedInUser }, "User logged in successfully!")
     );
 });
 
@@ -213,9 +207,9 @@ const googleOauth = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .cookie("isLoggedin", true, {
-      // httpOnly: false,
-      // secure: true,
-      // sameSite: "none",
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
       path: "/",
     })
     .json(
