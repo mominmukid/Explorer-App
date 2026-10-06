@@ -23,6 +23,7 @@ app.use(cookieParser());
 app.get("/", (req, res) => {
   res.send("Hello this is the Backend of Explorer APP");
 });
+
 //routes  import
 import userRouter from "./routes/user.routes.js";
 import tweetRouter from "./routes/tweet.routes.js";
@@ -40,5 +41,8 @@ app.use("/api/v1/playlist", playListRouter);
 app.use("/api/v1/like", likeRouter);
 app.use("/api/v1/comment", commentRouter);
 app.use("/api/v1/subscribe", subscribRouter);
+app.use("/api/v1/health", (req, res) => {
+  res.status(200).json({ message: "Server is healthy" });
+});
 
 export default app;
